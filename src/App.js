@@ -19,8 +19,27 @@ class App extends Component {
 		super();
 		this.state ={
 			input: '',
-			imageUrl: ''
+			imageUrl: '',
+			box: ''
 		}
+	}
+	
+	faceLocation = (data) => {
+		const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
+		const image = document.getElementById('inputImage');
+		const width = Number(image.width);
+		const height = Number(image.height);
+		return {
+			leftCol: clarifaiFace.left_col * width,
+      topRow: clarifaiFace.top_row * height,
+      rightCol: width - (clarifaiFace.right_col * width),
+      bottomRow: height - (clarifaiFace.bottom_row * height)
+		}
+	}
+	
+	displayFaceBox = (box) => {
+		console.log(box);
+		this.setState({box: box})
 	}
 	
 	onInputChange = (event) => {
@@ -30,10 +49,9 @@ class App extends Component {
 	onSumbit = () => {
 		this.setState = ({imageUrl: this.state.input})
 
-		app.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input).then(
-  	function(response) {
-    // do something with response
-			console.log(response)
+		app.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
+			.then( response => {
+			this.displayFaceBox(this.faceLocation(response));
   	},
   	function(err) {
     // there was an error
@@ -51,7 +69,7 @@ class App extends Component {
 					onInputChange={this.onInputChange}
 					onSumbit={this.onSumbit}
 					/>
-					<FaceReco imageUrl={this.state.input}/>
+					<FaceReco box={this.state.box} imageUrl={this.state.input}/>
       </div>
     );
   }
